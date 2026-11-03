@@ -167,15 +167,32 @@ function renderToolbar() {
   };
 }
 
+/* 首屏前 n 张图改成 eager，第一张抬到 high 优先级：
+   所有缩略图都用 loading="lazy" 会把视口内图片也降级，直接把 LCP 拖到 2.5s 以上 */
+function eagerFirst(container, n) {
+  if (!container) return;
+  var imgs = container.querySelectorAll("img");
+  for (var i = 0; i < Math.min(n, imgs.length); i++) {
+    imgs[i].loading = "eager";
+    imgs[i].decoding = "async";
+  }
+  if (imgs[0]) imgs[0].setAttribute("fetchpriority", "high");
+}
+
 function renderGrid() {
   if (S.set === "build") return;
   var list = DB.items.filter(match);
   $("#grid").className = "grid " + effSet();
   $("#grid").innerHTML = list.map(cardHTML).join("");
   $("#count").textContent = "符合条件：" + list.length + " 张";
+  eagerFirst($("#grid"), 6);
   $("#grid").querySelectorAll(".card").forEach(function (c) {
     var id = c.dataset.id;
-    c.querySelector("img").onclick = function () { openModal(id); };
+    /* 整卡可点：只绑图片时，点标题 / 描述 / 卡片边缘都会变成「无效点击」 */
+    c.onclick = function (e) {
+      if (e.target.closest("[data-fav],[data-copy],[data-add],[data-vw]")) return;
+      openModal(id);
+    };
     var f = c.querySelector("[data-fav]");
     if (f) f.onclick = function (e) {
       e.stopPropagation();
