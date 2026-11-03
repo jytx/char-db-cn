@@ -473,3 +473,32 @@ footer .links{margin:0 0 18px;display:flex;gap:8px;flex-wrap:wrap;align-items:ce
 .acts button,.acts a.ghost,.build-btns button,.close,.nav-arrow,.slot2 .x{border-color:var(--line-strong)}
 .nav button:hover,.tab:hover,.rndbtn:hover,.tips-trigger:hover,.sister:hover,.grat-trigger:hover,
 .dl-btn:hover,.links .btn:hover,.acts button:hover,.build-btns button:hover,.close:hover,.nav-arrow:hover,.slot2 .x:hover{border-color:var(--ink)}
+
+/* ---------- 大列表：只渲染视口内卡片 ---------- */
+body.big-grid .card{content-visibility:auto;contain-intrinsic-size:auto 360px}
+
+/* 「显示更多」按钮，占满一行 */
+.more-btn{
+  grid-column:1/-1;justify-self:center;margin:6px 0 4px;
+  border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);
+  border-radius:var(--r-md);padding:10px 22px;font-size:13px;font-weight:500;
+}
+.more-btn:hover{border-color:var(--ink)}
+
+/* ---------- 移动端底部常驻「复制提示词」 ---------- */
+.mobile-cta{display:none}
+@media (max-width:760px){
+  body.view-build .mobile-cta{
+    display:block;position:fixed;left:0;right:0;bottom:0;z-index:70;
+    padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+    background:rgba(247,247,244,.94);backdrop-filter:blur(10px);
+    border-top:1px solid var(--line);
+  }
+  body.view-build .mobile-cta button{
+    width:100%;border:0;border-radius:var(--r-md);background:var(--accent);color:#fff;
+    padding:13px 0;font-size:14.5px;font-weight:600;
+  }
+  body.view-build .mobile-cta button.done{background:var(--ink)}
+  /* 给常驻条让出空间，避免遮住最后一块内容 */
+  body.view-build main{padding-bottom:96px}
+}

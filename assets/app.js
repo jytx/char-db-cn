@@ -17,6 +17,8 @@ var BASE = DB.base;
 var REF_BASE = "https://ai-costume-anime-gallery.pages.dev/";
 var SETS = { hair: "发型", outfit: "服装", pose: "姿势", build: "组装" };
 var S = { set: "hair", q: "", cat: { hair: "", outfit: "", pose: "", outfit2: "" }, outfitView: "worn" };
+var PER_PAGE = 200;   // 一次渲染的卡片上限，超出用「显示更多」追加
+var SHOWN = PER_PAGE;
 function effSet() { return (S.set === "outfit" && S.outfitView === "ref") ? "outfit2" : S.set; }
 var QUALITY = {
   illustrious: "masterpiece, best quality, amazing quality, very aesthetic, absurdres, newest",
@@ -159,7 +161,18 @@ function renderToolbar() {
     };
   });
   $("#q").value = S.q;
-  $("#q").oninput = function (e) { S.q = e.target.value.trim(); renderGrid(); trackSearch(); };
+  /* 输入去抖：每次按键全量重建 1700+ 张卡会把 INP 顶到 280ms 以上 */
+  var qTimer = null;
+  $("#q").oninput = function (e) {
+    var v = e.target.value.trim();
+    clearTimeout(qTimer);
+    qTimer = setTimeout(function () {
+      S.q = v;
+      SHOWN = PER_PAGE;
+      renderGrid();
+      trackSearch();
+    }, 180);
+  };
   $("#rnd2").onclick = function () {
     var list = DB.items.filter(match); if (!list.length) return;
     trackEvent("random", { lib: set });
@@ -182,10 +195,19 @@ function eagerFirst(container, n) {
 function renderGrid() {
   if (S.set === "build") return;
   var list = DB.items.filter(match);
+  var shown = Math.min(SHOWN, list.length);
   $("#grid").className = "grid " + effSet();
-  $("#grid").innerHTML = list.map(cardHTML).join("");
-  $("#count").textContent = "符合条件：" + list.length + " 张";
+  $("#grid").innerHTML = list.slice(0, shown).map(cardHTML).join("");
+  $("#count").textContent = "符合条件：" + list.length + " 张" + (shown < list.length ? "（已显示 " + shown + "）" : "");
+  document.body.classList.toggle("big-grid", shown > 120);
   eagerFirst($("#grid"), 6);
+  if (shown < list.length) {
+    var more = document.createElement("button");
+    more.className = "more-btn";
+    more.textContent = "显示更多（还有 " + (list.length - shown) + " 张）";
+    more.onclick = function () { SHOWN += PER_PAGE; renderGrid(); };
+    $("#grid").appendChild(more);
+  }
   $("#grid").querySelectorAll(".card").forEach(function (c) {
     var id = c.dataset.id;
     /* 整卡可点：只绑图片时，点标题 / 描述 / 卡片边缘都会变成「无效点击」 */
@@ -217,7 +239,13 @@ function renderGrid() {
   });
 }
 
-function render() { renderToolbar(); if (S.set === "build") renderBuild(); else renderGrid(); }
+function render() {
+  renderToolbar();
+  var isBuild = S.set === "build";
+  document.body.classList.toggle("view-build", isBuild);
+  if (isBuild) renderBuild();
+  else renderGrid();
+}
 
 /* ---------- 标签与组装 ---------- */
 function colorTag(it) {
@@ -710,7 +738,8 @@ document.querySelectorAll(".nav-pan a.dl-btn").forEach(function (a) {
 document.querySelectorAll(".nav button").forEach(function (b) {
   b.onclick = function () {
     S.set = b.dataset.set;
-    trackEvent("lib_view", { lib: S.set });
+    SHOWN = PER_PAGE;
+    trackEvent("set_view", { lib: S.set });
     document.querySelectorAll(".nav button").forEach(function (x) { x.classList.toggle("on", x === b); });
     render();
   };
@@ -720,7 +749,29 @@ S.set = "build";
 document.querySelectorAll(".nav button").forEach(function (x) {
   x.classList.toggle("on", x.dataset.set === "build");
 });
-trackEvent("lib_view", { lib: "build" });
+/* 页面加载即触发的事件单独命名，避免和「用户切页」混在一起统计 */
+trackEvent("build_view", { lib: "build" });
+
+/* 移动端底部常驻 CTA：复制提示词（组装页在手机上要滚两屏才看得到提示词） */
+(function () {
+  var cta = document.getElementById("mCtaCopy");
+  if (!cta) return;
+  cta.onclick = function () {
+    var pos = document.getElementById("outPos");
+    if (!pos) return;
+    trackEvent("copy", { label: "cta_fixed", lib: "build" });
+    var label = cta.textContent;
+    var done = function () {
+      cta.textContent = "已复制 ✓";
+      cta.classList.add("done");
+      setTimeout(function () { cta.textContent = label; cta.classList.remove("done"); }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(pos.value).then(done).catch(function () { fallback(pos.value, done); });
+    } else fallback(pos.value, done);
+  };
+})();
+
 randomFill("empty");   // 首次进入 / 刷新后，空着的槽位补一个随机值
 render();
 })();
