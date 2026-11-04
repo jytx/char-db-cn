@@ -726,12 +726,8 @@ document.addEventListener("keydown", function (e) {
   } catch (e) { }
 })();
 
-/* ---------- 网盘入口埋点 ---------- */
-document.querySelectorAll(".nav-pan a.dl-btn").forEach(function (a) {
-  var href = a.getAttribute("href") || "";
-  var src = a.dataset.pan || (href.indexOf("baidu") >= 0 ? "pan_baidu_dl" : (href.indexOf("quark") >= 0 ? "pan_quark_dl" : ""));
-  if (src) a.addEventListener("click", function () { trackEvent("ref_click", { source: src }); });
-});
+/* 网盘等外链的点击改由 Clarity 自带「出站点击」统计：
+   手动在 click 上埋点曾在 Android 内置浏览器里触发 Maximum call stack（2026-11-03 录制） */
 
 /* ---------- 导航 ---------- */
 document.querySelectorAll(".nav button").forEach(function (b) {
