@@ -199,7 +199,6 @@ function renderGrid() {
   $("#grid").className = "grid " + effSet();
   $("#grid").innerHTML = list.slice(0, shown).map(cardHTML).join("");
   $("#count").textContent = "符合条件：" + list.length + " 张" + (shown < list.length ? "（已显示 " + shown + "）" : "");
-  document.body.classList.toggle("big-grid", shown > 120);
   eagerFirst($("#grid"), 6);
   if (shown < list.length) {
     var more = document.createElement("button");
