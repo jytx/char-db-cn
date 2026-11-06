@@ -240,7 +240,9 @@ h1 span{
 
 /* ---------- gallery ---------- */
 /* min-height 兜住首屏：data.js 解析完才插卡片，预留高度避免页脚被顶进视口（CLS） */
-main{padding:26px 0 56px;min-height:calc(100vh - 200px);min-height:calc(100svh - 200px)}  /* 用 svh：移动端地址栏收起时 vh 会变，min-height 跟着变会造成 CLS */
+/* 首屏高度用固定 px 预留：视口单位（vh/svh）在移动端会随地址栏变化，反而制造 CLS */
+main{padding:26px 0 56px;min-height:520px}
+@media (min-width:900px){main{min-height:760px}}
 .grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
 .grid.hair,.grid.outfit{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
 .grid.pose{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
