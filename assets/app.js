@@ -48,8 +48,12 @@ var BG = [
 ];
 var BG_ZH = { "白背景": "白背景", "グレー背景": "灰背景", "教室": "教室", "寝室": "卧室", "リビング": "客厅", "街": "街道", "ビーチ": "海滩", "公園": "公园", "夜の街": "夜晚街道", "カフェ": "咖啡店", "浴室": "浴室", "オフィス": "办公室", "神社": "神社", "森": "森林", "屋上": "天台", "指定なし": "不指定" };
 
+var RATIOS = [
+  ["1:1", "1:1 方图"], ["3:4", "3:4 竖图"], ["4:3", "4:3 横图"],
+  ["9:16", "9:16 竖屏"], ["16:9", "16:9 横屏"], ["2:3", "2:3 竖长"], ["3:2", "3:2 横长"]
+];
 var SEL = { style: null, bangs: null, color: null, acc: null, eye: null, outfit: null, pose: null };
-var OPT = { quality: "illustrious", expr: "笑顔", compo: "全身", bg: "白背景", extra: "", sep: "comma", body: "" };
+var OPT = { quality: "illustrious", expr: "笑顔", compo: "全身", bg: "白背景", ratio: "3:4", extra: "", sep: "comma", body: "" };
 var FAV = {};
 try { FAV = JSON.parse(window.localStorage.getItem("charFav") || "{}"); } catch (e) { FAV = {}; }
 function saveFav() { try { window.localStorage.setItem("charFav", JSON.stringify(FAV)); } catch (e) { } }
@@ -59,6 +63,7 @@ try {
   var so = JSON.parse(window.localStorage.getItem("charOpt") || "null");
   if (so) { Object.keys(OPT).forEach(function (k) { if (so[k] !== undefined) OPT[k] = so[k]; }); }
 } catch (e) { }
+if (!RATIOS.some(function (r) { return r[0] === OPT.ratio; })) OPT.ratio = "3:4";
 function saveSel() { try { window.localStorage.setItem("charSel", JSON.stringify(SEL)); window.localStorage.setItem("charOpt", JSON.stringify(OPT)); } catch (e) { } }
 
 // 兼容旧版本：曾把单品图存在 ref 槽
@@ -353,6 +358,11 @@ function renderBuild() {
       + (it ? '<button class="x" data-clear="' + k + '">×</button>' : "")
       + "</div>";
   });
+  function ratioOpts() {
+    return RATIOS.map(function (r) {
+      return '<option value="' + r[0] + '"' + (OPT.ratio === r[0] ? " selected" : "") + ">" + r[1] + "</option>";
+    }).join("");
+  }
   function opts(list, cur, mode) {
     return list.map(function (o) {
       var label = o[0];
@@ -370,10 +380,11 @@ function renderBuild() {
     + "<label>表情</label><select id=\"optExpr\">" + opts(EXPR, OPT.expr, "expr") + "</select>"
     + "<label>构图</label><select id=\"optCompo\">" + opts(COMPO, OPT.compo, "compo") + "</select>"
     + "<label>背景</label><select id=\"optBg\">" + opts(BG, OPT.bg, "bg") + "</select>"
+    + "<label>比例</label><select id=\"optRatio\">" + ratioOpts() + "</select>"
     + '<label>体型</label><input id="optBody" type="text" placeholder="如 slim, medium breasts（选填，固定行）" value="' + esc(OPT.body) + '">'
     + '<label>追加标签</label><input id="optExtra" type="text" placeholder="如 looking at viewer, sitting" value="' + esc(OPT.extra) + '">'
-    + '</div><p class="mini-hint">品质前缀说明：Illustrious / Noob、Anima、NovelAI、SDXL·Pony 各一套，按你用的模型选。</p></div>'
-    + '<div class="box" style="grid-column:1/-1"><div class="box-head"><h3>③ 提示词</h3></div>'
+    + '</div><p class="mini-hint">品质前缀说明：Illustrious / Noob、Anima、NovelAI、SDXL·Pony 各一套，按你用的模型选。比例只用于出图工具，不写入提示词。</p></div>'
+    + '<div class="box" style="grid-column:1/-1"><div class="box-head"><h3>③ 提示词</h3><span class="ratio-badge" id="ratioBadge" title="出图时的宽高比；不会写入提示词">出图比例 ' + OPT.ratio + '</span></div>'
     + '<div class="mini-hint pos-head"><span>正向提示词</span>'
     + '<button class="copy-ico sm" id="copyPrompt" type="button" title="复制正向提示词" aria-label="复制正向提示词">'
     + '<svg class="ico i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>'
@@ -400,7 +411,7 @@ function renderBuild() {
   $("#grid").querySelectorAll("[data-clear]").forEach(function (b) {
     b.onclick = function () { SEL[b.dataset.clear] = null; saveSel(); render(); };
   });
-  ["optQuality", "optExpr", "optCompo", "optBg"].forEach(function (id) {
+  ["optQuality", "optExpr", "optCompo", "optBg", "optRatio"].forEach(function (id) {
     var el = $("#" + id);
     if (!el) return;
     el.onchange = function () {
@@ -408,6 +419,10 @@ function renderBuild() {
       if (id === "optExpr") OPT.expr = el.value;
       if (id === "optCompo") OPT.compo = el.value;
       if (id === "optBg") OPT.bg = el.value;
+      if (id === "optRatio") {
+        OPT.ratio = el.value;
+        $("#ratioBadge").textContent = "出图比例 " + OPT.ratio;
+      }
       trackEvent("build_opt", { type: id.replace("opt", "").toLowerCase(), value: el.value });
       saveSel(); $("#outPos").value = buildPrompt();
     };
@@ -522,7 +537,8 @@ function buildSheet() {
         var ROWH = CH + LAB;
         var rows = Math.ceil(loaded.length / cols);
         var W = PAD * 2 + CW * cols + GAP * (cols - 1);
-        var H = PAD * 2 + ROWH * rows + GAP * (rows - 1);
+        var FOOT = 42;
+        var H = PAD * 2 + ROWH * rows + GAP * (rows - 1) + FOOT;
         var c = document.createElement("canvas");
         c.width = W; c.height = H;
         var g = c.getContext("2d");
@@ -543,6 +559,9 @@ function buildSheet() {
           g.font = "600 34px -apple-system, 'PingFang SC', sans-serif";
           g.fillText(mark + " " + o.item.label + " · " + itemTitle(o.item.it), x + 4, y + CH + 44);
         });
+        g.fillStyle = "#807d72";
+        g.font = "500 22px -apple-system, 'PingFang SC', sans-serif";
+        g.fillText("出图比例 " + OPT.ratio + " · 请在出图工具中设置", PAD, H - 18);
         c.toBlob(function (b) {
           if (b) resolve(b); else reject(new Error("toBlob"));
         }, "image/png");
