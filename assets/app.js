@@ -786,6 +786,20 @@ trackEvent("build_view", { lib: "build" });
   };
 })();
 
+/* ---------- 网盘点击专用埋点 ----------
+   Clarity 自带的「出站点击」是聚合事件，分不出百度/夸克，也没法只统计网盘。
+   用事件委托（一个监听器、capture 阶段），不挂在具体链接上，避免之前那种点击链路问题。 */
+document.addEventListener(
+  "click",
+  function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href*="pan.baidu.com"], a[href*="pan.quark.cn"]') : null;
+    if (!a) return;
+    var dest = a.getAttribute("href").indexOf("pan.baidu.com") >= 0 ? "pan_baidu" : "pan_quark";
+    trackEvent(dest, { href: (a.getAttribute("href") || "").slice(0, 60) });
+  },
+  true
+);
+
 randomFill("empty");   // 首次进入 / 刷新后，空着的槽位补一个随机值
 render();
 })();
