@@ -37,19 +37,19 @@ window.LOCAL_ORIGINALS = {
 
 ## 原图下载
 
-顶部有打包下载条，两个网盘任选：
+顶部导航右侧常驻两组下载入口，每组都给 UC 网盘和迅雷网盘两条，内容相同。
 
-- 百度网盘：<https://pan.baidu.com/s/1HOBVBkWRRPVW1rKmrWt7Fw?pwd=5NR1>
-- 夸克网盘：<https://pan.quark.cn/s/b18c3791645b>
+**原图包**（1,027 张原图 JPEG 1024×1536 + 281 张姿势线稿 PNG，共 191 MB）
 
-内容：1,027 张原图 JPEG（1024×1536）+ 281 张姿势线稿 PNG，共 191 MB。
+- UC 网盘：<https://drive.uc.cn/s/3d9f9a726af44>
+- 迅雷网盘：<https://pan.xunlei.com/s/VP6taL3v0z9hKwOzDXhJxh6TA1?pwd=ycnb>（提取码 ycnb）
 
-单品图（新增服装库，1,320 张）另有一份打包：
+**单品图包**（1,320 张无人物单品图 PNG 512×768，共 465 MB）
 
-- 百度网盘：<https://pan.baidu.com/s/1X0o-TJZzFrNoist6a8qqXg?pwd=Px22>
-- 夸克网盘：<https://pan.quark.cn/s/adb9f57434be>
+- UC 网盘：<https://drive.uc.cn/s/bfb9b8494c934>
+- 迅雷网盘：<https://pan.xunlei.com/s/VP6taYv-Y8LL17B9cqBZBY9OA1?pwd=27dz>（提取码 27dz）
 
-导航栏（发型 / 服装 / 姿势 / 组装 那一行）右侧常驻这两组入口：「📦 原图包」和「单品图包 · 新增」，鼠标悬停包名可看包含内容说明。
+鼠标悬停包名可看包含内容说明。
 
 ## 能做什么
 
