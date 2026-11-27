@@ -403,6 +403,8 @@ function renderBuild() {
     + '<span class="copy-all-label">复制全部提示词</span>'
     + '</button>'
     + '<button id="sheetSave">导出参考图</button><button id="sheetCopy">复制参考图</button>'
+    + '</div>'
+    + '<a class="qwen-tip" href="https://qwenwork.cn/download?utm_source=rentuibang&amp;utm_content=banner452" target="_blank" rel="sponsored nofollow noopener"><span class="qwen-tip-badge">推荐</span>复制后直接去千问办公生成<span class="qwen-tip-arrow" aria-hidden="true">↗</span></a>'
     + '</div></div></div>';
   $("#grid").className = "grid";
   $("#grid").innerHTML = html;
